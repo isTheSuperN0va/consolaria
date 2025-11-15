@@ -2,14 +2,18 @@
 
 using System.ComponentModel;
 
-public class MenuItem
+public abstract class MenuBase
 {
-    string label = "";
-
+    public string label = "";
     public Action? action;
-    bool isSelected = false;
 
-    public MenuItem(string label, Action? action)
+    public bool isSelected = false;
+
+}
+
+public class MenuButton : MenuBase
+{
+    public MenuButton(string label, Action? action)
     {
         this.label = label;
         this.action = action;
@@ -22,11 +26,26 @@ public class MenuItem
     }
 }
 
+public class MenuSelector : MenuBase
+{
+    public MenuSelector(string label, Action? action)
+    {
+        this.label = label;
+        this.action = action;
+    }
+
+    public void Draw(string[] selector, int i)
+    {
+        Console.BackgroundColor = isSelected ? Color.selectedColor : Color.backgroundColor;
+        Console.WriteLine(label + " - " + selector[i]);
+    }
+}
+
 static public class Menu
 {
-    static MenuItem[][] menu = {
-        new MenuItem[] {new MenuItem("Jogar", Nothing), new MenuItem("Opções", () => ChangeMenu(1)), new MenuItem("Sair", Nothing)},
-        new MenuItem[] {new MenuItem("Linguagem", Nothing), new MenuItem("Teclas", Nothing), new MenuItem("Cores", Nothing), new MenuItem("Voltar", Nothing)}};
+    static MenuButton[][] menu = {
+        new MenuButton[] {new MenuButton("Jogar", Nothing), new MenuButton("Opções", () => ChangeMenu(1)), new MenuButton("Sair", Nothing)},
+        new MenuButton[] {new MenuButton("Linguagem", Nothing), new MenuButton("Teclas", Nothing), new MenuButton("Cores", Nothing), new MenuButton("Voltar", Nothing)}};
 
     static int selectedOption = 0;
     static int currentMenu = 0;
