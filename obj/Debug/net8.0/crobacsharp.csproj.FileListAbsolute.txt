@@ -1,0 +1,14 @@
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/crobacsharp.GeneratedMSBuildEditorConfig.editorconfig
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/crobacsharp.AssemblyInfoInputs.cache
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/crobacsharp.AssemblyInfo.cs
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/crobacsharp.csproj.CoreCompileInputs.cache
+/home/edu/Documents/projetos/crobacsharp/bin/Debug/net8.0/crobacsharp
+/home/edu/Documents/projetos/crobacsharp/bin/Debug/net8.0/crobacsharp.deps.json
+/home/edu/Documents/projetos/crobacsharp/bin/Debug/net8.0/crobacsharp.runtimeconfig.json
+/home/edu/Documents/projetos/crobacsharp/bin/Debug/net8.0/crobacsharp.dll
+/home/edu/Documents/projetos/crobacsharp/bin/Debug/net8.0/crobacsharp.pdb
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/crobacsharp.dll
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/refint/crobacsharp.dll
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/crobacsharp.pdb
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/crobacsharp.genruntimeconfig.cache
+/home/edu/Documents/projetos/crobacsharp/obj/Debug/net8.0/ref/crobacsharp.dll
