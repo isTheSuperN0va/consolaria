@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("crobacsharp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+52968375d4b2999e6f8b1e14a23d7168cc0a6fda")]
 [assembly: System.Reflection.AssemblyProductAttribute("crobacsharp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("crobacsharp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

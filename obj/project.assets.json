@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/edu/Documents/projetos/crobacsharp/crobacsharp.csproj",
+      "projectUniqueName": "/home/edu/Documents/projetos/consolaria/crobacsharp.csproj",
       "projectName": "crobacsharp",
-      "projectPath": "/home/edu/Documents/projetos/crobacsharp/crobacsharp.csproj",
+      "projectPath": "/home/edu/Documents/projetos/consolaria/crobacsharp.csproj",
       "packagesPath": "/home/edu/.nuget/packages/",
-      "outputPath": "/home/edu/Documents/projetos/crobacsharp/obj/",
+      "outputPath": "/home/edu/Documents/projetos/consolaria/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/edu/.nuget/NuGet/NuGet.Config"

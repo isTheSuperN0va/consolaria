@@ -26,7 +26,7 @@ static public class Menu
 {
     static MenuItem[][] menu = {
         new MenuItem[] {new MenuItem("Jogar", Nothing), new MenuItem("Opções", () => ChangeMenu(1)), new MenuItem("Sair", Nothing)},
-        new MenuItem[] {new MenuItem("Linguagem", Nothing), new MenuItem("Teclas", Nothing), new MenuItem("Voltar", Nothing)}};
+        new MenuItem[] {new MenuItem("Linguagem", Nothing), new MenuItem("Teclas", Nothing), new MenuItem("Cores", Nothing), new MenuItem("Voltar", Nothing)}};
 
     static int selectedOption = 0;
     static int currentMenu = 0;
