@@ -1,0 +1,11 @@
+{
+    "menu": {
+        "play": "Play",
+        "options": "Options",
+        "exit": "Exit",
+        "language": "Language",
+        "keybinds":"Keybinds",
+        "colors":"Colors",
+        "goback":"Go Back"
+    }
+}

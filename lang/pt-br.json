@@ -1,0 +1,11 @@
+{
+    "menu": {
+        "play": "Jogar.",
+        "options": "Opções",
+        "exit": "Sair",
+        "language": "Linguagem",
+        "keybinds":"Teclas",
+        "colors":"Cores",
+        "goback":"Voltar"
+    }
+}
