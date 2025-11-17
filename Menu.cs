@@ -1,9 +1,24 @@
 
 
 using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
+using System.Reflection.Emit;
+using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+//using static System.Console; *levanta a sobrançelha* ...talvez? 
 
 public abstract class MenuBase
 {
+    public byte CalculateLabelOffset(string textLength) { return (byte)(textLength.Length / 2); }
+    public MenuBase(Func<string> label, Action? action, byte buttonIndex)
+    {
+        this.label = label;
+        this.action = action;
+        this.buttonIndex = buttonIndex;
+
+        this.labelOffset = CalculateLabelOffset(label());
+    }
     public enum MenuTypes
         {
             Button,
@@ -11,6 +26,10 @@ public abstract class MenuBase
             Keybind
         }   
 
+    public byte buttonIndex = 0;
+    public byte labelOffset;
+
+    public byte[] pos = {(byte)(Console.WindowWidth / 2), (byte)(Console.WindowHeight / 2)};
     public Func<string> label;
     public Action? action;
 
@@ -23,18 +42,20 @@ public abstract class MenuBase
 
 public class MenuButton : MenuBase
 {
-    public MenuButton(Func<string> label, Action? action)
+    public MenuButton(Func<string> label, Action? action, byte buttonIndex) : base(label, action, buttonIndex)
     {
-        this.label = label;
-        this.action = action;
-
         this.menuType = MenuTypes.Button;
     }
 
     override public void Draw(bool isSelected)
     {
         Console.BackgroundColor = isSelected ? Options.Color.selectedColor : Options.Color.backgroundColor;
-        Console.WriteLine(label());
+
+        string locLabel = label();
+
+        labelOffset = CalculateLabelOffset(locLabel);
+        Console.SetCursorPosition(pos[0] - labelOffset, Console.WindowHeight / 2 + buttonIndex);
+        Console.WriteLine(locLabel);
     }
 }
 
@@ -42,53 +63,61 @@ public class MenuSelector : MenuBase
 {
     public byte index = 0;
     string[] selector;
-    public MenuSelector(Func<string> label, Action? action, string[] selector)
+    Action<string>? selectorAction;
+    public MenuSelector(Func<string> label, Action? action, byte buttonIndex, string[] selector, Action<string> selectorAction) : base(label, action, buttonIndex)
     {
         this.menuType = MenuTypes.Selector;
-        
-        this.label = label;
-        this.action = action;
+
         this.selector = selector;
+        this.selectorAction = selectorAction;
     }
     override public void Draw(bool isSelected)
     {
-        index = (byte)((index + selector.Length) % selector.Length);
+        Loc.Reader.UpdateLoc(selector[index]);
 
-        Loc.Reader.UpdateLoc(selector[index].ToLower());
+        string formattedLabel = label() + " - " + "< " + selector[index] + " >";
+        labelOffset = CalculateLabelOffset(formattedLabel);
+
+        Console.SetCursorPosition(pos[0] - labelOffset, pos[1] + buttonIndex);
         
         Console.BackgroundColor = isSelected ? Options.Color.selectedColor : Options.Color.backgroundColor;
-        Console.WriteLine(label() + " - " + selector[index]);
+        Console.WriteLine(formattedLabel);
 
     }
-
     public void Move(bool left)
     {
         if (left) { index++; }
         else { index--; }
+
+        index = (byte)((index + selector.Length) % selector.Length);
+        selectorAction.Invoke(selector[index]);
     }   
 }
 
 static public class Menu
 {
-    static string[] langOptions = {"EN-US", "PT-BR"};
+    static string[] langOptions = {"EN-US", "PT-BR"}; // Esses devem ser colocado em um json de alguma maneira.
 
+    // Wawa, dereference to a possibly null blabla. Ajeitar isso depois.
     static Func<string> playFunc = () => Loc.Reader.loc.menu.play;
     static Func<string> optionsFunc = () => Loc.Reader.loc.menu.options;
-    static Func<string> exitFunc = () => Loc.Reader.loc.menu.play;
+    static Func<string> exitFunc = () => Loc.Reader.loc.menu.exit;
     static Func<string> languageFunc = () => Loc.Reader.loc.menu.language;
     static Func<string> keybindsplayFunc = () => Loc.Reader.loc.menu.keybinds;
     static Func<string> colorsFunc = () => Loc.Reader.loc.menu.colors;
     static Func<string> gobackFunc = () => Loc.Reader.loc.menu.goback;
 
+    // Funções de seletores
+    static Action<string> languageUpdater = Loc.Reader.UpdateLoc;
 
     static MenuBase[][] menu = {
-        new MenuBase[] {new MenuButton(playFunc, Nothing), 
-                        new MenuButton(optionsFunc, () => ChangeMenu((int)Menus.Options)), 
-                        new MenuButton(exitFunc, Exit)},
-        new MenuBase[] {new MenuSelector(languageFunc, Nothing, langOptions), 
-                        new MenuButton(keybindsplayFunc, Nothing), 
-                        new MenuButton(colorsFunc, Nothing), 
-                        new MenuButton(gobackFunc, () => ChangeMenu((int)Menus.Main))}};
+        new MenuBase[] {new MenuButton(playFunc, Nothing, 1), 
+                        new MenuButton(optionsFunc, () => ChangeMenu((int)Menus.Options), 2), 
+                        new MenuButton(exitFunc, Exit, 3)},
+        new MenuBase[] {new MenuSelector(languageFunc, Nothing, 1, langOptions, languageUpdater), 
+                        new MenuButton(keybindsplayFunc, Nothing, 2), 
+                        new MenuButton(colorsFunc, Nothing, 3), 
+                        new MenuButton(gobackFunc, () => ChangeMenu((int)Menus.Main), 4)}};
 
     static int selectedOption = 0;
     static int currentMenu = 0;
@@ -98,11 +127,12 @@ static public class Menu
     {
         while (running)
         {
+
             Console.Clear();
             Console.CursorVisible = false;
 
             Draw();
-            running = HandleInput();
+            HandleInput();
 
             Console.BackgroundColor = Options.Color.backgroundColor;
             Console.Clear();
@@ -118,9 +148,11 @@ static public class Menu
         }
     }
     }
-    static bool HandleInput()
+    static void HandleInput()
     {
         ConsoleKey key = Console.ReadKey(true).Key;
+
+
 
         if (key == Options.Keybinds.MenuUp) { selectedOption--; }
         else if (key == Options.Keybinds.MenuDown) { selectedOption++; }
@@ -130,7 +162,6 @@ static public class Menu
         else if (key == Options.Keybinds.Exit) { Exit(); }
 
         selectedOption = (selectedOption + menu[currentMenu].Length) % menu[currentMenu].Length;
-        return true;
     }
     
 

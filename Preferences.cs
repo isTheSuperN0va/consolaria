@@ -19,9 +19,10 @@ namespace Loc {
 
     static public class Reader
     {
-        static public Loc? loc = new Loc();
+        static public Loc? loc = new Loc {};
         static public void UpdateLoc(string locfilename)
         {
+            locfilename = locfilename.ToLower();
             string json = File.ReadAllText("lang/" + locfilename + ".json");
             loc = JsonSerializer.Deserialize<Loc>(json);
         }
