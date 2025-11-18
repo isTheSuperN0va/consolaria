@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 
 namespace Loc {
@@ -108,6 +109,20 @@ namespace Options {
         public static ConsoleKey Confirm = ConsoleKey.Enter;
         public static ConsoleKey ConfirmAlt = ConsoleKey.Spacebar;
         public static ConsoleKey Exit = ConsoleKey.Escape;
+
+        static FieldInfo[] GetFieldsOfType<T>(Type t)
+        {
+            return t.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static).Where(f => f.FieldType == typeof(T)).ToArray();
+        }
+
+        public static FieldInfo? FindKeybindField(string name)
+        {
+            foreach (FieldInfo fieldInfo in GetFieldsOfType<ConsoleKey>(typeof(Keybinds))) {
+                if (fieldInfo.Name == name) return fieldInfo; 
+            }
+
+            return null;
+        }
 
     }
 }

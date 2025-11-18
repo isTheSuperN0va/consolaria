@@ -6,21 +6,20 @@ using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Reflection;
 //using static System.Console; *levanta a sobrançelha* ...talvez? 
 
 namespace Menu {
 public abstract class Base
 {
         public int CalculateLabelOffset(string text) { return text.Length / 2; }
-        public Base(Func<string> label, Action? action, byte buttonIndex, Alignment alignment)
+        public Base(Func<string> label)
         {
             this.label = label;
-            this.action = action;
-            this.buttonIndex = buttonIndex;
-            this.alignment = alignment;
 
             this.labelOffset = CalculateLabelOffset(label());
         }
+        
         public enum Alignment
             {
                 Default,
@@ -54,12 +53,18 @@ public abstract class Base
                 break;
             }
         }
-
+        
+        public abstract void OnConfirm();
     }
 
     public class Button : Base
     {
-        public Button(Func<string> label, Action? action, byte buttonIndex, Alignment alignment) : base(label, action, buttonIndex, alignment) { }
+        public Button(Func<string> label, byte buttonIndex, Alignment alignment, Action? action) : base(label) { 
+            this.alignment = alignment; 
+            this.buttonIndex = buttonIndex; 
+            this.action = action; 
+        }
+        public Button(Func<string> label, Action? action) : base(label) { this.action = action; }
 
         override public void Draw(bool isSelected)
         {
@@ -71,6 +76,22 @@ public abstract class Base
 
             Console.WriteLine(locLabel);
         }
+
+        public override void OnConfirm() { action?.Invoke(); }
+    }
+
+    public class SubmenuButton : Base
+    {
+        Manager.Menus menu;
+        public SubmenuButton(Func<string> label, Manager.Menus menu) : base(label) { this.menu = menu; }
+
+        public override void Draw(bool isSelected)
+        {
+            Console.BackgroundColor = isSelected ? Options.Color.selectedColor : Options.Color.backgroundColor;
+            Console.WriteLine($"{label()}");
+        }
+
+        public override void OnConfirm() { Manager.ChangeMenu((int)menu); }
     }
 
     public class Selector : Base
@@ -78,7 +99,15 @@ public abstract class Base
         public byte index = 0;
         string[] selector;
         Action<string>? selectorAction;
-        public Selector(Func<string> label, Action? action, byte buttonIndex, Alignment alignment, string[] selector, Action<string> selectorAction) : base(label, action, buttonIndex, alignment)
+        public Selector(Func<string> label, byte buttonIndex, Alignment alignment, string[] selector, Action<string> selectorAction) : base(label)
+        {
+            this.selector = selector;
+            this.selectorAction = selectorAction;
+            this.buttonIndex = buttonIndex;
+            this.alignment = alignment;
+        }
+
+        public Selector(Func<string> label, string[] selector, Action<string> selectorAction) : base(label)
         {
             this.selector = selector;
             this.selectorAction = selectorAction;
@@ -100,7 +129,33 @@ public abstract class Base
 
             index = (byte)((index + selector.Length) % selector.Length);
             selectorAction.Invoke(selector[index]);
-        }   
+        }
+
+        public override void OnConfirm() {}
+    }
+
+    public class KeybindHolder : Base
+    {
+        ConsoleKey keybind;
+        FieldInfo keybindField;
+
+
+        public KeybindHolder(Func<string> label, string name) : base(label) {
+            this.keybindField = Options.Keybinds.FindKeybindField(name);
+            keybind = (ConsoleKey)keybindField.GetValue(null); 
+        }
+        
+        override public void Draw(bool isSelected)
+        {
+            Console.BackgroundColor = isSelected ? Options.Color.selectedColor : Options.Color.backgroundColor;
+            Console.WriteLine($"{label()} - {Convert.ToString(keybind)}");
+        }
+
+        public override void OnConfirm()
+        {
+            keybind = Console.ReadKey(true).Key;
+            Options.Keybinds.FindKeybindField(label()).SetValue(null, keybind);
+        }
     }
 
     static public class Manager
@@ -144,7 +199,7 @@ public abstract class Base
 
             if (key == Options.Keybinds.MenuUp) { selectedOption--; }
             else if (key == Options.Keybinds.MenuDown) { selectedOption++; }
-            else if (key == Options.Keybinds.Confirm) { menu[currentMenu][selectedOption].action?.Invoke(); }
+            else if (key == Options.Keybinds.Confirm) { menu[currentMenu][selectedOption].OnConfirm(); }
             else if (key == Options.Keybinds.MenuLeft && menu[currentMenu][selectedOption] is Selector selLeft) { selLeft.Move(true); }
             else if (key == Options.Keybinds.MenuRight && menu[currentMenu][selectedOption] is Selector selRight) { selRight.Move(false); }
             else if (key == Options.Keybinds.Exit) { Exit(); }
@@ -207,33 +262,32 @@ public abstract class Base
         static Base.Alignment alignment = Base.Alignment.Default;
 
 
-        // Alignment é compartilhado por todos, considerar colocar como uma statica de Base de alguma maneira
-        static Base[] mainMenu = {new Button(playFunc, Manager.Nothing, 1, alignment), 
-                                    new Button(optionsFunc, () => Manager.ChangeMenu((int)Manager.Menus.Options), 2, alignment), 
-                                    new Button(exitFunc, Manager.Exit, 3, alignment)};
+        // tá, func e action com lambda em KeybindHolder é muito merda
+        static Base[] mainMenu = {new Button(playFunc, Manager.Nothing), 
+                                    new Button(optionsFunc, () => Manager.ChangeMenu((int)Manager.Menus.Options)), 
+                                    new Button(exitFunc, Manager.Exit)};
         
-        static Base[] optionsMenu = {new Selector(languageFunc, Manager.Nothing, 1, alignment, langOptions, languageUpdater), 
-                                        new Button(keybindsFunc, () => Manager.ChangeMenu((int)Manager.Menus.Keybinds), 2, alignment), 
-                                        new Button(colorsFunc, () => Manager.ChangeMenu((int)Manager.Menus.Colors), 3, alignment), 
-                                        new Button(gobackFunc, () => Manager.ChangeMenu((int)Manager.Menus.Main), 4, alignment)};
+        static Base[] optionsMenu = {new Selector(languageFunc, langOptions, languageUpdater), 
+                                        new SubmenuButton(keybindsFunc, Manager.Menus.Keybinds), 
+                                        new SubmenuButton(colorsFunc, Manager.Menus.Colors), 
+                                        new SubmenuButton(gobackFunc, Manager.Menus.Main)};
 
-        static Base[] keybindsMenu = {new Button(menuupFunc, Manager.Nothing, 1, alignment), 
-                                        new Button(menudownFunc, Manager.Nothing, 2, alignment), 
-                                        new Button(menuleftFunc, Manager.Nothing, 3, alignment), 
-                                        new Button(menurightFunc, Manager.Nothing, 4, alignment),
-                                        new Button(confirmFunc, Manager.Nothing, 4, alignment),
-                                        new Button(exitKFunc, Manager.Nothing, 4, alignment),
-                                        new Button(exitgameFunc, Manager.Nothing, 4, alignment),
-                                        new Button(gobackFunc, () => Manager.ChangeMenu((int)Manager.Menus.Options), 4, alignment)};
+        static Base[] keybindsMenu = {new KeybindHolder(menuupFunc, "MenuUp"), 
+                                        new KeybindHolder(menudownFunc, "MenuDown"), 
+                                        new KeybindHolder(menuleftFunc, "MenuLeft"), 
+                                        new KeybindHolder(menurightFunc, "MenuRight"),
+                                        new KeybindHolder(confirmFunc, "Confirm"),
+                                        new KeybindHolder(exitKFunc, "Exit"),
+                                        new KeybindHolder(exitgameFunc, "Exit"),
+                                        new SubmenuButton(gobackFunc, Manager.Menus.Options)};
 
-        static Base[] colorsMenu =   {new Selector(presetsFunc, Manager.Nothing, 1, alignment, presetColorOptions, colorPresetsUpdater), 
-                                        new Button(backgroundcolorFunc, Manager.Nothing, 2, alignment), 
-                                        new Button(foregroundcolorFunc, Manager.Nothing, 3, alignment), 
-                                        new Button(colorblindmodeFunc, Manager.Nothing, 4, alignment),
-                                        new Button(gobackFunc, () => Manager.ChangeMenu((int)Manager.Menus.Options), 5, alignment)};
+        static Base[] colorsMenu =   {new Selector(presetsFunc, presetColorOptions, colorPresetsUpdater), 
+                                        new Button(backgroundcolorFunc, Manager.Nothing), 
+                                        new Button(foregroundcolorFunc, Manager.Nothing), 
+                                        new Button(colorblindmodeFunc, Manager.Nothing),
+                                        new SubmenuButton(gobackFunc, Manager.Menus.Options)};
 
         
-        // Apenas butões vão usar action? tirar isso do Base dps
         public static Base[][] menu = { mainMenu, optionsMenu, keybindsMenu, colorsMenu }; 
     }
 
