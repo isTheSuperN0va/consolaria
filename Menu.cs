@@ -105,6 +105,77 @@ public abstract class Base
 
     static public class Manager
     {
+        
+
+        static int selectedOption = 0;
+        static int currentMenu = 0;
+        static bool running = true;
+
+        static public void Run(Base[][] menu)
+        {
+            while (running)
+            {
+
+                Console.Clear();
+                Console.CursorVisible = false;
+
+                Draw(menu);
+                HandleInput(menu);
+
+                Console.BackgroundColor = Options.Color.backgroundColor;
+                Console.Clear();
+            }
+        static void Draw(Base[][] menu)
+        {
+            bool isSelected = false;
+
+            for (int i = 0; i < menu[currentMenu].Length; i++)
+            {
+                isSelected = i == selectedOption;
+                menu[currentMenu][i].Draw(isSelected);
+            }
+        }
+        }
+        static void HandleInput(Base[][] menu)
+        {
+            ConsoleKey key = Console.ReadKey(true).Key;
+
+
+
+            if (key == Options.Keybinds.MenuUp) { selectedOption--; }
+            else if (key == Options.Keybinds.MenuDown) { selectedOption++; }
+            else if (key == Options.Keybinds.Confirm) { menu[currentMenu][selectedOption].action?.Invoke(); }
+            else if (key == Options.Keybinds.MenuLeft && menu[currentMenu][selectedOption] is Selector selLeft) { selLeft.Move(true); }
+            else if (key == Options.Keybinds.MenuRight && menu[currentMenu][selectedOption] is Selector selRight) { selRight.Move(false); }
+            else if (key == Options.Keybinds.Exit) { Exit(); }
+
+            selectedOption = (selectedOption + menu[currentMenu].Length) % menu[currentMenu].Length;
+        }
+        
+
+        public static void ChangeMenu(int menu) { currentMenu = menu; }
+
+        public static void Exit() {
+            Console.ResetColor();
+            Console.Clear();
+            Console.CursorVisible = true;
+
+            running = false;
+        }
+
+        public static void Nothing() {  }
+
+        public enum Menus {
+            Main,
+            Options,
+            Keybinds,
+            Colors,
+        }
+
+    }
+
+    static public class Builtin
+    {
         static string[] langOptions = {"EN-US", "PT-BR"}; // Esses devem ser colocado em um json de alguma maneira.
         static string[] presetColorOptions = {"Default", "Hacker", "Hot Pink", "Nature"};
 
@@ -137,99 +208,33 @@ public abstract class Base
 
 
         // Alignment é compartilhado por todos, considerar colocar como uma statica de Base de alguma maneira
-        static Base[] mainMenu = {new Button(playFunc, Nothing, 1, alignment), 
-                                    new Button(optionsFunc, () => ChangeMenu((int)Menus.Options), 2, alignment), 
-                                    new Button(exitFunc, Exit, 3, alignment)};
+        static Base[] mainMenu = {new Button(playFunc, Manager.Nothing, 1, alignment), 
+                                    new Button(optionsFunc, () => Manager.ChangeMenu((int)Manager.Menus.Options), 2, alignment), 
+                                    new Button(exitFunc, Manager.Exit, 3, alignment)};
         
-        static Base[] optionsMenu = {new Selector(languageFunc, Nothing, 1, alignment, langOptions, languageUpdater), 
-                                        new Button(keybindsFunc, () => ChangeMenu((int)Menus.Keybinds), 2, alignment), 
-                                        new Button(colorsFunc, () => ChangeMenu((int)Menus.Colors), 3, alignment), 
-                                        new Button(gobackFunc, () => ChangeMenu((int)Menus.Main), 4, alignment)};
+        static Base[] optionsMenu = {new Selector(languageFunc, Manager.Nothing, 1, alignment, langOptions, languageUpdater), 
+                                        new Button(keybindsFunc, () => Manager.ChangeMenu((int)Manager.Menus.Keybinds), 2, alignment), 
+                                        new Button(colorsFunc, () => Manager.ChangeMenu((int)Manager.Menus.Colors), 3, alignment), 
+                                        new Button(gobackFunc, () => Manager.ChangeMenu((int)Manager.Menus.Main), 4, alignment)};
 
-        static Base[] keybindsMenu = {new Button(menuupFunc, Nothing, 1, alignment), 
-                                        new Button(menudownFunc, Nothing, 2, alignment), 
-                                        new Button(menuleftFunc, Nothing, 3, alignment), 
-                                        new Button(menurightFunc, Nothing, 4, alignment),
-                                        new Button(confirmFunc, Nothing, 4, alignment),
-                                        new Button(exitKFunc, Nothing, 4, alignment),
-                                        new Button(exitgameFunc, Nothing, 4, alignment),
-                                        new Button(gobackFunc, () => ChangeMenu((int)Menus.Options), 4, alignment)};
+        static Base[] keybindsMenu = {new Button(menuupFunc, Manager.Nothing, 1, alignment), 
+                                        new Button(menudownFunc, Manager.Nothing, 2, alignment), 
+                                        new Button(menuleftFunc, Manager.Nothing, 3, alignment), 
+                                        new Button(menurightFunc, Manager.Nothing, 4, alignment),
+                                        new Button(confirmFunc, Manager.Nothing, 4, alignment),
+                                        new Button(exitKFunc, Manager.Nothing, 4, alignment),
+                                        new Button(exitgameFunc, Manager.Nothing, 4, alignment),
+                                        new Button(gobackFunc, () => Manager.ChangeMenu((int)Manager.Menus.Options), 4, alignment)};
 
-        static Base[] colorsMenu =   {new Selector(presetsFunc, Nothing, 1, alignment, presetColorOptions, colorPresetsUpdater), 
-                                        new Button(backgroundcolorFunc, Nothing, 2, alignment), 
-                                        new Button(foregroundcolorFunc, Nothing, 3, alignment), 
-                                        new Button(colorblindmodeFunc, Nothing, 4, alignment),
-                                        new Button(gobackFunc, () => ChangeMenu((int)Menus.Options), 5, alignment)};
+        static Base[] colorsMenu =   {new Selector(presetsFunc, Manager.Nothing, 1, alignment, presetColorOptions, colorPresetsUpdater), 
+                                        new Button(backgroundcolorFunc, Manager.Nothing, 2, alignment), 
+                                        new Button(foregroundcolorFunc, Manager.Nothing, 3, alignment), 
+                                        new Button(colorblindmodeFunc, Manager.Nothing, 4, alignment),
+                                        new Button(gobackFunc, () => Manager.ChangeMenu((int)Manager.Menus.Options), 5, alignment)};
 
         
         // Apenas butões vão usar action? tirar isso do Base dps
-        static Base[][] menu = { mainMenu, optionsMenu, keybindsMenu, colorsMenu }; 
-
-        static int selectedOption = 0;
-        static int currentMenu = 0;
-        static bool running = true;
-
-        static public void Run()
-        {
-            while (running)
-            {
-
-                Console.Clear();
-                Console.CursorVisible = false;
-
-                Draw();
-                HandleInput();
-
-                Console.BackgroundColor = Options.Color.backgroundColor;
-                Console.Clear();
-            }
-        static void Draw()
-        {
-            bool isSelected = false;
-
-            for (int i = 0; i < menu[currentMenu].Length; i++)
-            {
-                isSelected = i == selectedOption;
-                menu[currentMenu][i].Draw(isSelected);
-            }
-        }
-        }
-        static void HandleInput()
-        {
-            ConsoleKey key = Console.ReadKey(true).Key;
-
-
-
-            if (key == Options.Keybinds.MenuUp) { selectedOption--; }
-            else if (key == Options.Keybinds.MenuDown) { selectedOption++; }
-            else if (key == Options.Keybinds.Confirm) { menu[currentMenu][selectedOption].action?.Invoke(); }
-            else if (key == Options.Keybinds.MenuLeft && menu[currentMenu][selectedOption] is Selector selLeft) { selLeft.Move(true); }
-            else if (key == Options.Keybinds.MenuRight && menu[currentMenu][selectedOption] is Selector selRight) { selRight.Move(false); }
-            else if (key == Options.Keybinds.Exit) { Exit(); }
-
-            selectedOption = (selectedOption + menu[currentMenu].Length) % menu[currentMenu].Length;
-        }
-        
-
-        static void ChangeMenu(int menu) { currentMenu = menu; }
-
-        static void Exit() {
-            Console.ResetColor();
-            Console.Clear();
-            Console.CursorVisible = true;
-
-            running = false;
-        }
-
-        static void Nothing() {  }
-
-        enum Menus {
-            Main,
-            Options,
-            Keybinds,
-            Colors,
-        }
-
+        public static Base[][] menu = { mainMenu, optionsMenu, keybindsMenu, colorsMenu }; 
     }
 
 }
