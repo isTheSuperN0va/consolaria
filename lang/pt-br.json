@@ -1,11 +1,30 @@
 {
     "menu": {
-        "play": "Jogar",
-        "options": "Opções",
-        "exit": "Sair",
-        "language": "Linguagem",
-        "keybinds":"Teclas",
-        "colors":"Cores",
+        "main": {
+            "play": "Jogar",
+            "options": "Opções",
+            "exit": "Sair"
+        },
+        "options": {
+            "language": "Linguagem",
+            "keybinds":"Teclas",
+            "colors":"Cores"
+        },
+        "keybinds": {
+            "menuup": "Menu Cima",
+            "menudown": "Menu Baixo",
+            "menuleft":"Menu Esquerda",
+            "menuright":"Menu Direita",
+            "confirm": "Confirmar",
+            "exit": "Sair",
+            "exitgame": "Sair do jogo"
+        },
+        "colors": {
+            "presets": "Predefinições",
+            "backgroundcolor":"Cor de fundo",
+            "foregroundcolor":"cor de frenter",
+            "colorblindmode": "Modo daltônico"
+        },
         "goback":"Voltar"
     }
 }

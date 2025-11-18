@@ -4,7 +4,7 @@
 using System.Reflection;
 
 Loc.Reader.UpdateLoc("en-us");
-Menu.Run();
+Menu.Manager.Run();
 
 
 

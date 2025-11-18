@@ -1,11 +1,30 @@
 {
     "menu": {
-        "play": "Play",
-        "options": "Options",
-        "exit": "Exit",
-        "language": "Language",
-        "keybinds":"Keybinds",
-        "colors":"Colors",
+        "main": {
+            "play": "Play",
+            "options": "Options",
+            "exit": "Exit"
+        },
+        "options": {
+            "language": "Language",
+            "keybinds":"Keybinds",
+            "colors":"Colors"
+        },
+        "keybinds": {
+            "menuup": "Menu Up",
+            "menudown": "Menu Down",
+            "menuleft":"Menu Left",
+            "menuright":"Menu Right",
+            "confirm": "Confirm",
+            "exit": "Exit",
+            "exitgame": "Exit Game"
+        },
+        "colors": {
+            "presets": "Presets",
+            "backgroundcolor":"Background Color",
+            "foregroundcolor":"Foreground Color",
+            "colorblindmode": "Colorblind Mode"
+        },
         "goback":"Go Back"
     }
 }
