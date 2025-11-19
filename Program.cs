@@ -3,7 +3,7 @@
 
 using System.Reflection;
 
-Loc.Reader.UpdateLoc("en-us");
+Loc.Reader.Load("en-us");
 Menu.Manager.Run(Menu.Builtin.menu);
 
 

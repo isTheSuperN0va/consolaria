@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Security;
 using System.Text.Json;
 
 namespace Loc {
@@ -51,12 +52,56 @@ namespace Loc {
     static public class Reader
     {
         static public Loc? loc = new Loc {};
-        static public void UpdateLoc(string locfilename)
+        static Dictionary<string, string> Dictionary = new Dictionary<string, string>();
+
+        public static void Load(string langName)
         {
-            locfilename = locfilename.ToLower();
-            string json = File.ReadAllText("lang/" + locfilename + ".json");
+            langName = langName.ToLower();
+            string json = File.ReadAllText("lang/" + langName + ".json");
             loc = JsonSerializer.Deserialize<Loc>(json);
+            Reader.Dictionary = Flatten(loc);
+
+            foreach (string field in Dictionary.Keys) {
+                System.Console.WriteLine(field);
+            }
         }
+
+        public static string Get(string key)
+        {
+            return Dictionary[key];
+        }
+
+        static Dictionary<string, string> Flatten(object? root)
+        {
+            var dict = new Dictionary<string, string>();
+            Walk(root, "", dict);
+            return dict;
+        }
+
+        static void Walk(object? node, string prefix, Dictionary<string, string> dict)
+        {
+            if (node == null) return;
+
+            var type = node.GetType();
+
+            if (type == typeof(string))
+            {
+                dict[prefix] = (string)node;
+                return;
+            }
+
+            foreach (var property in type.GetProperties()) {
+                if (!property.CanRead) continue;
+
+                var value = property.GetValue(node, null);
+                var nPrefix = prefix == "" ? property.Name : $"{prefix}.{property.Name}";
+                Walk(value, nPrefix, dict);
+            }
+
+
+        }
+
+
     }
 }
 
