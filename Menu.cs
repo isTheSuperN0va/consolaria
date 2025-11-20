@@ -7,6 +7,7 @@ using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Reflection;
+using Game;
 //using static System.Console; *levanta a sobrançelha* ...talvez? 
 
 namespace Menu {
@@ -79,7 +80,7 @@ public abstract class Base
             Console.WriteLine(label);
         }
 
-        public override void OnConfirm() { action?.Invoke(); }
+        public override void OnConfirm() { action?.Invoke(); } 
     }
 
     public class SubmenuButton : Base
@@ -167,24 +168,25 @@ public abstract class Base
         static int selectedOption = 0;
         static int currentMenu = 0;
         static bool running = true;
+        public static bool gameStart = false;
 
         static public void Run(Base[][] menu)
         {
+            Input[] menuInputs = RegisterMenuInputs(menu);
+
             while (running)
             {
 
+                Console.ResetColor();
                 Console.Clear();
                 Console.CursorVisible = false;
 
                 Draw(menu);
-                HandleInput(menu);
-
-                Console.BackgroundColor = Options.Color.backgroundColor;
-                Console.Clear();
+                HandleInput(menu, menuInputs);
             }
         static void Draw(Base[][] menu)
         {
-            bool isSelected = false;
+            bool isSelected;
 
             for (int i = 0; i < menu[currentMenu].Length; i++)
             {
@@ -193,19 +195,34 @@ public abstract class Base
             }
         }
         }
-        static void HandleInput(Base[][] menu)
+
+        static Input[] RegisterMenuInputs(Base[][] menu)
         {
-            ConsoleKey key = Console.ReadKey(true).Key;
+            Action nextOption = () => selectedOption--;
+            Action previousOption = () => selectedOption++;
+            Action confirm = () => menu[currentMenu][selectedOption].OnConfirm();
+            Action selectorLeft = () => { if (menu[currentMenu][selectedOption] is Selector selLeft) { selLeft.Move(true); } }; 
+            Action selectorRight = () => { if (menu[currentMenu][selectedOption] is Selector selLeft) { selLeft.Move(false); } };
+            Action exit = Exit;
 
+            Input[] inputs =
+            {
+                new Input(Options.Keybinds.MenuUp, nextOption),
+                new Input(Options.Keybinds.MenuDown, previousOption),
+                new Input(Options.Keybinds.Confirm, confirm),
+                new Input(Options.Keybinds.MenuLeft, selectorLeft),
+                new Input(Options.Keybinds.MenuRight, selectorRight),
+                new Input(Options.Keybinds.Exit, exit),
+            };
 
+            return inputs;
+        }
+        static void HandleInput(Base[][] menu, Input[] inputs)
+        {
+            ConsoleKey? key; 
+            bool keyWasPressed = Utils.KeyPressedWait(null, out key);
 
-            if (key == Options.Keybinds.MenuUp) { selectedOption--; }
-            else if (key == Options.Keybinds.MenuDown) { selectedOption++; }
-            else if (key == Options.Keybinds.Confirm) { menu[currentMenu][selectedOption].OnConfirm(); }
-            else if (key == Options.Keybinds.MenuLeft && menu[currentMenu][selectedOption] is Selector selLeft) { selLeft.Move(true); }
-            else if (key == Options.Keybinds.MenuRight && menu[currentMenu][selectedOption] is Selector selRight) { selRight.Move(false); }
-            else if (key == Options.Keybinds.Exit) { Exit(); }
-
+            if (keyWasPressed) foreach (Input input in inputs) input.CheckAgainst(key);
             selectedOption = (selectedOption + menu[currentMenu].Length) % menu[currentMenu].Length;
         }
         
@@ -253,7 +270,7 @@ public abstract class Base
         static Base.Alignment alignment = Base.Alignment.Default;
 
 
-        static Base[] mainMenu = {new Button(mainMenuPrefix + ".play", Manager.Nothing), 
+        static Base[] mainMenu = {new Button(mainMenuPrefix + ".play", Game.Manager.Start), 
                                     new SubmenuButton(mainMenuPrefix + ".options", Manager.Menus.Options), 
                                     new Button(mainMenuPrefix + ".exit", Manager.Exit)};
         

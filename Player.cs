@@ -1,8 +1,11 @@
+using System.Net;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 static public class Player
 {
+    static public char body = 'X';
     static public string name = "";
     static public short x, y;
     static public int hp, xp, mana;
@@ -11,7 +14,7 @@ static public class Player
 
     private const int HEALTH_MODIFIER = 5;
 
-    static public int maxHp = (int)(HEALTH_MODIFIER*stats[(int)StatsNames.Vitality]*Math.Sqrt(lvl));
+    // static public int maxHp = (int)(HEALTH_MODIFIER*stats[(int)StatsNames.Vitality]*Math.Sqrt(lvl));
 
     static byte[] defence = {0, 0, 0, 0};
 
@@ -24,11 +27,11 @@ static public class Player
         hp -= damageModified;
     }
 
-    static public void Heal(int amount, bool percentage)
-    {
-        if (!percentage) { hp = (hp + amount) > maxHp ? maxHp : hp + amount; }
-        else { hp = hp *= amount > maxHp ? maxHp : hp *= amount; }
-    }
+    // static public void Heal(int amount, bool percentage)
+    // {
+    //     if (!percentage) { hp = (hp + amount) > maxHp ? maxHp : hp + amount; }
+    //     else { hp = hp *= amount > maxHp ? maxHp : hp *= amount; }
+    // }
 
     //Enums
 
